@@ -19,15 +19,18 @@ module.exports = (db, start) => {
     api.execute = async () => {
         let start = api.steps.shift()
         if (start.apply) start = db[require('./args')(start)].filter(start) //start must be a predicate or an entity object
+        if(!start.splice) start = [start]
 
         let stepIndex = 0
-        let context = { comments: "Not fully implemented", result: [start] }
+        let context = { comments: "Not fully implemented", result: start }
         while (stepIndex < api.steps.length) {
             let step = api.steps[stepIndex]
 
             if (step.type == 'all') {
                 let newResult = []
-                context.result.forEach(item => newResult = newResult.concat(item[step.key]))
+                context.result.forEach(item => {
+                    if(item[step.key]) newResult = newResult.concat(item[step.key])
+                })
                 context.result = newResult
                 stepIndex++
 
