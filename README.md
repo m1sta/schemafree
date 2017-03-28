@@ -1,6 +1,6 @@
 # SchemaFree
 
-An embedded, schema-free, multi-modal database for node.js. Support graph queries and sql queries. See sample.js for more information. Built for discussion.
+An embedded, schema-free, multi-modal database for node.js. Support graph queries and sql queries. Persistence uses Google's leveldb. See sample.js for more information. Built for discussion.
 
 ## Getting Started
 
