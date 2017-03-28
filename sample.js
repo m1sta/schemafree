@@ -17,7 +17,7 @@
         await db.link(rebecca, josephine, "friends")
 
         //The resulting dataset can be walked as a graph. Only a very simple set of graph traversal commands are currently available.
-        console.log("Find all of the husbands of all of josphine's friends using a graph walk...\n")
+        console.log("Find all of the husband's of all of josphine's friends using a graph walk...\n")
         let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
         console.table(walkResult.result)
 

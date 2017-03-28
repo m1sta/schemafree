@@ -107,7 +107,8 @@ module.exports = (opts) => new Promise((resolve, reject) => {
 
                 } catch (e) {
                     db.del(data.key)
-                    console.log("An invalid link has been identified and cleaned up. Please unlink entities before removing them.")
+                    //todo: enable the line below with a flag. Wait until unlink() is actually implemented.
+                    //console.log("An invalid link has been identified and cleaned up. Please unlink entities before removing them.")
                 }
             }
         })
