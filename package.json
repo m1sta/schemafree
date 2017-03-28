@@ -1,0 +1,24 @@
+{
+  "name": "schemafree",
+  "version": "0.0.1",
+  "tags": [
+    "graph",
+    "database",
+    "sql",
+    "embedded"
+  ],
+  "description": "Embedded Schema-Free Multi Modal Database. Built to illustrate an idea.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "m1sta",
+  "license": "ISC",
+  "dependencies": {
+    "alasql": "^0.3.9",
+    "easy-table": "^1.0.0",
+    "level": "^1.6.0",
+    "shortid": "^2.2.8",
+    "then-levelup": "^1.0.2"
+  }
+}
