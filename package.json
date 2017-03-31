@@ -1,6 +1,6 @@
 {
   "name": "schemafree",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "tags": [
     "graph",
     "database",
@@ -8,6 +8,7 @@
     "embedded"
   ],
   "description": "Embedded Schema-Free Multi Modal Database. Built to illustrate an idea. Very alpha.",
+  "homepage": "https://github.com/m1sta/schemafree",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
