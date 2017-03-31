@@ -29,7 +29,7 @@ module.exports = (db, start) => {
             if (step.type == 'all') {
                 let newResult = []
                 context.result.forEach(item => {
-                    if(item[step.key]) newResult = newResult.concat(item[step.key])
+                    if(item[step.key]) newResult = newResult.concat(Object.values(item[step.key]))
                 })
                 context.result = newResult
                 stepIndex++

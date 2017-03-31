@@ -26,7 +26,7 @@ module.exports = (opts) => new Promise((resolve, reject) => {
         let collection = data.splice ? data : [data]
         if (collection.filter(i => !i.type).length > 0) throw "All items must have a 'type' property"
         await Promise.all(collection.map(async item => {
-            if (!item.id) item.id = await api.uid(item.type)
+            if (!item.id) item.id = await api.uid(item.type) //if no row id is provided then one will be generated. 
             await db.put(item.type + ":" + item.id, item)
             return setCache(item)
         }))
@@ -42,39 +42,103 @@ module.exports = (opts) => new Promise((resolve, reject) => {
     })
 
     api.link = async (toObj, fromObj, fromLabel, toLabel) => {
+        //note: toObj and fromObj are internally managed as lists so that in the future multiple links can be created/destroyed with a single predicate
         if (fromObj.apply) fromObj = await api.search(fromObj)
         if (toObj.apply) toObj = await api.search(toObj)
         if (!fromObj.splice) fromObj = [fromObj]
         if (!toObj.splice) toObj = [toObj]
         if (!toLabel) toLabel = fromLabel
 
-        //todo: Only the following two lines support using a single link() call to establish multiple links. The rest of the function may be expended to support this in the future.
-        fromObj.forEach(f => { f[fromLabel] = toObj })
-        toObj.forEach(t => { t[toLabel] = fromObj })
+        //create links between cached table row objects for use in graph query
+        fromObj.forEach(f => { if (!f[fromLabel]) f[fromLabel] = {}; f[fromLabel][toObj[0].id] = toObj[0]; })
+        toObj.forEach(t => { if (!t[toLabel]) t[toLabel] = {}; t[toLabel][fromObj[0].id] = fromObj[0]; })
 
+        //todo: support addition of multiple links at once
+
+        //update the cached link tables to allow links to be queried via sql
         let cachedFromLink = { a: fromObj[0].id, b: toObj[0].id, label: fromLabel }
         let cachedToLink = { a: toObj[0].id, b: fromObj[0].id, label: toLabel }
         if (!api.cache.links.find(i => JSON.stringify(i) == JSON.stringify(cachedFromLink))) api.cache.links.push(cachedFromLink)
         if (!api.cache.links.find(i => JSON.stringify(i) == JSON.stringify(cachedToLink))) api.cache.links.push(cachedToLink)
 
+        //store the link in the database
         let key = "~" + [fromObj[0].type, fromObj[0].id, fromLabel, toObj[0].type, toObj[0].id, toLabel].join(":")
         await db.put(key, {})
 
         return fromObj.concat(toObj)
     }
 
-    api.unlink = async () => {
-        //todo: Implement unlink()
-        return "Not Implemented (Yet)"
+    api.unlink = async (toObj, fromObj, fromLabel, toLabel) => {
+        //note: toObj and fromObj are internally managed as lists so that in the future multiple links can be created/destroyed with a single predicate
+        if (fromObj.apply) fromObj = await api.search(fromObj)
+        if (toObj.apply) toObj = await api.search(toObj)
+        if (!fromObj.splice) fromObj = [fromObj]
+        if (!toObj.splice) toObj = [toObj]
+        if (!toLabel) toLabel = fromLabel
+
+        //create links between cached table row objects for use in graph query
+        fromObj.forEach(f => { 
+            delete f[fromLabel][toObj[0].id] 
+        })
+        toObj.forEach(t => { delete t[toLabel][fromObj[0].id] })
+
+        //todo: support removal of multiple links at once
+
+        //update the cached link tables to allow links to be queried via sql
+        let cachedFromLink = { a: fromObj[0].id, b: toObj[0].id, label: fromLabel }
+        let cachedToLink = { a: toObj[0].id, b: fromObj[0].id, label: toLabel }
+        api.cache.links = api.cache.links.filter(i => 
+            JSON.stringify(i) != JSON.stringify(cachedFromLink) && JSON.stringify(i) != JSON.stringify(cachedToLink)
+        )
+
+        //remove the link in the database
+        let key = "~" + [fromObj[0].type, fromObj[0].id, fromLabel, toObj[0].type, toObj[0].id, toLabel].join(":")
+        await db.del(key, {})
+
+        return fromObj.concat(toObj)
     }
 
     api.uid = async () => {
         return shortid.generate()
     }
 
-    api.query = (sql) => ({
-        execute: async () => alasql(sql, api.cache) //api styled this way to support complied queries in the future and for consistency with .walk()
-    })
+    api.query = (sql, preventLinkExpansion) => {
+
+        let linkSyntaxExpander = t1 => {
+            /*
+                Example Input:
+                    select p1.name as husband, p2.name as wife, address.suburb
+                    from person p1, person p2, addresses
+                    link p1.wife to p2 with outer join and p2.address to addresses with inner
+                    where p1.age > 30
+                    group by address.suburb
+
+                Note:
+                    inner and outer join concepts not currently implemented
+            */
+            let rxLink = /(\s+link\s+)([a-zA-Z0-9_\-\.]+\s+to[a-zA-Z0-9_\-\.,+\s]+)(where|group by|having|$)/gi
+            let rxTo = /([^\s]+)\.([^\s]+)\s+to\s+([^\s]+)/gi
+
+            let t2 = t1.replace(rxLink, (link, head, body, tail) => {
+                let linksFrom = []
+                let linksWhere = []
+
+                let oldBodyParts = body.split(',')
+                for (part of oldBodyParts) {
+                    part.replace(rxTo, (stmt, fromTable, fromColumn, toTable) => {
+                        let linkTable = 'links' + linksFrom.length
+                        linksFrom.push(`$links ${linkTable}`)
+                        linksWhere.push(`${linkTable}.a = ${fromTable}.id and ${linkTable}.b = ${toTable}.id and ${linkTable}.label = '${fromColumn}'`)
+                    })
+                }
+                return ', ' + linksFrom.join(', ') + '\n where ' + linksWhere.join('\nand ') + '\n' + (/where/.test(tail) ? ' and ' : tail)
+            })
+            return t2;
+        }
+
+        let expandedSql = preventLinkExpansion ? sql : linkSyntaxExpander(sql)
+        return { execute: async () => alasql(expandedSql, api.cache) } //api styled this way to support complied queries in the future and for consistency with .walk()
+    }
 
     api.walk = (start) => walk(api.cache, start)
 
