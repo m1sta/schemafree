@@ -7,6 +7,7 @@ An embedded, schema-free, multi-modal database for node.js. Supports graph queri
 1. `npm install schemafree`
 2. `let db = require('schemafree')()`
 3. Review `sample.js` for a quick demo and to check everything is working
+4. If you want to play with it in the Node REPL then `await-outside` might make things easier.
 
 ## Api
 
