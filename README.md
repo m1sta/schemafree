@@ -24,7 +24,7 @@ The api is very short. The source is very short too. At this stage the best plac
 
 The `query()` function supports almost all of SQL-99 including temp tables, all join types, rollup, cube, and grouping sets, In addition it supports use of a new 'link' statement which makes traversal of many-to-many relationship tables cleaner. See sample.js for more information.
 
-The `search()` function provides a simple way to quickly grab any entity from the database using a javascript function. To get all person entities who with the firstname "Barry" simple type db.search(person => person.firstname == "Barry").
+The `search()` function provides a simple way to quickly grab any entity from the database using a javascript function. To get all person entities who with the firstname "Barry" simple type `db.search(person => person.firstname == "Barry")`.
 
 The `walk()` function offers a fluid syntax for quickly traversing stored data like a graph. Available steps are `all()`, `group()`, `map()`, `filter()`, `label()`, and `loop()`.
 
