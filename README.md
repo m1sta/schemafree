@@ -2,23 +2,6 @@
 
 An embedded, schema-free, multi-modal database for node.js. Supports graph queries and sql queries. Persistence uses Google's leveldb. See sample.js for more information. Built for discussion purposes. Contributions very welcome.
 
-## Quick Example
-
-See `sample.js` for a more complete example. Here are a few lines to give you a flavour for things.
-
-``` javascript
-  let db = await require('schemaFree')()
-  let rebecca = await db.set({ type: "person", name: "Rebecca", phone: "1234 567 890" })
-  let jonathon = await db.search(person => person.name)
-  await db.link(jonathon, rebecca, "husband", "wife")
-  let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
-  let sqlResult = await db.query(`
-            select p1.name as [Husband], p2.name as [Wife]
-            from $person p1, $person p2
-            link p1.wife to p2
-  `).execute()
-```
-
 ## Getting Started
 
 1. `npm install schemafree`
@@ -45,6 +28,23 @@ The `query()` function supports almost all of SQL-99 including temp tables, all 
 The `search()` function provides a simple way to quickly grab any entity from the database using a javascript function. To get all person entities who with the firstname "Barry" simple type `db.search(person => person.firstname == "Barry")`.
 
 The `walk()` function offers a fluid syntax for quickly traversing stored data like a graph. Available steps are `all()`, `group()`, `map()`, `filter()`, `label()`, and `loop()`.
+
+## Quick Example
+
+See `sample.js` for a more complete example. Here are a few lines to give you a flavour for things.
+
+``` javascript
+  let db = await require('schemaFree')()
+  let rebecca = await db.set({ type: "person", name: "Rebecca", phone: "1234 567 890" })
+  let jonathon = await db.search(person => person.name)
+  await db.link(jonathon, rebecca, "husband", "wife")
+  let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
+  let sqlResult = await db.query(`
+            select p1.name as [Husband], p2.name as [Wife]
+            from $person p1, $person p2
+            link p1.wife to p2
+  `).execute()
+```
 
 ## Version History
 
