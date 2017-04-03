@@ -1,15 +1,15 @@
 # SchemaFree
 
-An embedded, schema-free, multi-modal database for node.js. Supports graph queries and sql queries. Persistence uses Google's leveldb. See sample.js for more information. Built for discussion purposes.
+An embedded, schema-free, multi-modal database for node.js. Supports graph queries and sql queries. Persistence uses Google's leveldb. See sample.js for more information. Built for discussion purposes. Contributions very welcome.
 
-## Ease of Use
+## Quick Example
 
-See `sample.js` for a working example. Here are a few lines to give you a flavour for things.
+See `sample.js` for a more complete example. Here are a few lines to give you a flavour for things.
 
 ``` javascript
   let db = await require('schemaFree')()
-  let jonathon = await db.search(person => person.name
   let rebecca = await db.set({ type: "person", name: "Rebecca", phone: "1234 567 890" })
+  let jonathon = await db.search(person => person.name)
   await db.link(jonathon, rebecca, "husband", "wife")
   let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
   let sqlResult = await db.query(`
