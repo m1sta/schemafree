@@ -29,6 +29,22 @@ The `search()` function provides a simple way to quickly grab any entity from th
 
 The `walk()` function offers a fluid syntax for quickly traversing stored data like a graph. Available steps are `all()`, `group()`, `map()`, `filter()`, `label()`, and `loop()`.
 
+## Example
+
+See sample.js for a working sample. Here are a few lines to give you a flavour for things.
+
+``` javascript
+  let db = await require('./index.js')()
+  let rebecca = await db.set({ type: "person", name: "Rebecca", phone: "1234 567 890" })
+  await db.link(jonathon, rebecca, "husband", "wife")
+  let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
+  let sqlResult = await db.query(`
+            select p1.name as [Husband], p2.name as [Wife]
+            from $person p1, $person p2
+            link p1.wife to p2
+  `).execute()
+```
+
 ## Version History
 
 - 0.2 Initial release
