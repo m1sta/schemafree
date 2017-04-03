@@ -34,9 +34,10 @@ The `walk()` function offers a fluid syntax for quickly traversing stored data l
 See `sample.js` for a more complete example. Here are a few lines to give you a flavour for things.
 
 ``` javascript
+  //show a few features of the schemaFree package
   let db = await require('schemaFree')()
   let rebecca = await db.set({ type: "person", name: "Rebecca", phone: "1234 567 890" })
-  let jonathon = await db.search(person => person.name)
+  let jonathon = await db.search(person => person.name == "Jonathon")
   await db.link(jonathon, rebecca, "husband", "wife")
   let walkResult = await db.walk(person => person.name == "Josephine").all("friends").all("husband").execute()
   let sqlResult = await db.query(`
